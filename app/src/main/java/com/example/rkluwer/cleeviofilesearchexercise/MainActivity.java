@@ -1,8 +1,10 @@
 package com.example.rkluwer.cleeviofilesearchexercise;
 
 import android.Manifest;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -35,7 +38,6 @@ public class MainActivity extends AppCompatActivity {
 
     private int count = 0;
     private ArrayList<String> pathHistory;
-    private String lastDirectory;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +83,29 @@ public class MainActivity extends AppCompatActivity {
                     loadInternalStorage();
                 } else if (file.isAbsolute()){
                     createLog("This is a file that needs to be opened with an intent");
-                    // TODO open the file with an intent
+                    MimeTypeMap mime = MimeTypeMap.getSingleton();
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    String mimeType = mime.getMimeTypeFromExtension(fileExt(currentDirectory));
+                    intent.setDataAndType(Uri.parse(currentDirectory), mimeType);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                    createLog("mimetype is: " + mimeType);
+
+                    try {
+                        startActivity(intent);
+                    } catch (ActivityNotFoundException e){
+                        /*
+                        intent.setData(Uri.parse(currentDirectory));
+                        Intent newIntent = Intent.createChooser(intent, "Choose an activity to open this file with");
+                        startActivity(newIntent);
+                        */
+
+                        Toast.makeText(MainActivity.this
+                                , "You do not have the right program to open this file"
+                                , Toast.LENGTH_SHORT).show();
+
+                        createLog(e.getMessage());
+                    }
                 } else {
                     createLog("Something has gone wrong");
                 }
@@ -139,6 +163,27 @@ public class MainActivity extends AppCompatActivity {
             listView.setAdapter(arrayAdapter);
         } catch (NullPointerException e){
             createLog(e.getMessage());
+        }
+    }
+
+    // This method returns the extension of a file in order to be able to determine what kind of
+    // file it is.
+    private String fileExt(String url) {
+        if (url.indexOf("?") > -1) {
+            url = url.substring(0, url.indexOf("?"));
+        }
+        if (url.lastIndexOf(".") == -1) {
+            return null;
+        } else {
+            String ext = url.substring(url.lastIndexOf(".") + 1);
+            if (ext.indexOf("%") > -1) {
+                ext = ext.substring(0, ext.indexOf("%"));
+            }
+            if (ext.indexOf("/") > -1) {
+                ext = ext.substring(0, ext.indexOf("/"));
+            }
+            return ext.toLowerCase();
+
         }
     }
 
