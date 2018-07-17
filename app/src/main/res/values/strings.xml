@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Cleevio File Search Exercise</string>
+    <string name="action_settings">Settings</string>
+    <string name="refresh">Refresh</string>
+    <string name="default_folder">Default folder</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+</resources>
