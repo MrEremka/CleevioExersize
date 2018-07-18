@@ -2,6 +2,7 @@ package com.example.rkluwer.cleeviofilesearchexercise;
 
 import android.Manifest;
 import android.content.ActivityNotFoundException;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -12,10 +13,13 @@ import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.MimeTypeMap;
@@ -25,18 +29,47 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    ListView listView;
-    ArrayAdapter<String> arrayAdapter;
+    private ListView listView;
+    private ArrayAdapter<String> arrayAdapter;
 
     private int count = 0;
     private ArrayList<String> pathHistory;
+
+    private ActionMode actionMode;
+    private String currentDirectory;
+    private String currentFile;
+
+    private ActionMode.Callback deleteMenu = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            MenuInflater inflater = mode.getMenuInflater();
+            inflater.inflate(R.menu.delete_menu, menu);
+            return true;
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false;
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            if (item.getItemId() == R.id.delete_menu_delete) {
+                deleteItem();
+                actionMode.finish();
+            }
+            return true;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            actionMode = null;
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Setting the "return" icon in the toolbar
         // The return icon makes the user go back one step in the file menu.
-        toolbar.setNavigationIcon(getDrawable(R.mipmap.icon_left48));
+        toolbar.setNavigationIcon(getDrawable(R.mipmap.baseline_chevron_left_white_36));
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -86,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String currentDirectory = pathHistory.get(count) + "/" + (String) parent.getItemAtPosition(position);
+                currentDirectory = pathHistory.get(count) + "/" + (String) parent.getItemAtPosition(position);
                 createLog(currentDirectory);
                 File file = new File(currentDirectory);
 
@@ -124,6 +157,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                currentFile = (String) parent.getItemAtPosition(position);
+                currentDirectory = pathHistory.get(count) + "/" + currentFile;
+                createLog("LongClick clicked, delete menu opened");
+                actionMode = startActionMode(deleteMenu);
+                return true;
+            }
+        });
     }
 
     @Override
@@ -157,7 +201,47 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private void deleteItem() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("Are you sure you want to delete: " + currentFile + "?");
+        builder.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                File file = new File(currentDirectory);
+                createLog("Current directory: " + file.getAbsolutePath());
+                boolean wasDeleted = false;
+                if (file.exists()){
+                    try {
+                        wasDeleted = file.delete();
+                    } catch (Exception e){
+                        createLog("File was not deleted. " + e.getMessage());
+                    }
+                }
+
+                if (wasDeleted){
+                    Toast.makeText(MainActivity.this, "You successfully deleted: " + currentFile, Toast.LENGTH_SHORT).show();
+                }
+
+                loadInternalStorage();
+
+                createLog("Item deleted: " + currentFile);
+                dialog.dismiss();
+            }
+        });
+        builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
+
+    // Method to load the storage and put it in a list view / grid view.
     private void loadInternalStorage() {
+        listView.setAlpha(0f);
+        listView.animate().alpha(1f).setDuration(1000);
+
         try {
             createLog("loadInternalStorage directory: " + pathHistory.get(count));
             File file = new File(pathHistory.get(count));
@@ -224,12 +308,22 @@ public class MainActivity extends AppCompatActivity {
 
     // This method asks the user for the permission to read the external storage if not yet granted.
     private void requestPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE},
+        String[] permissions = {Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+        boolean hasAllPermissions = true;
+
+        for (String p: permissions){
+            if (ContextCompat.checkSelfPermission(this, p) != PackageManager.PERMISSION_GRANTED){
+                hasAllPermissions = false;
+            }
+        }
+
+        if (!hasAllPermissions){
+            createLog("The app does not have all the permissions yet.");
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_EXTERNAL_STORAGE
+                    , Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     ConstantValues.PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
         } else {
-            createLog("The app has the permission to read external storage");
+            createLog("The app has the permission to read and write to external storage");
         }
     }
 
@@ -256,14 +350,16 @@ class AsyncLoadStorage extends AsyncTask {
     // TODO make asyncTask to work
 
     @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
+    }
+
+    @Override
     protected Object doInBackground(Object[] objects) {
         return null;
     }
 
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-    }
+
 }
 
 

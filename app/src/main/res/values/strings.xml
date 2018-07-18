@@ -4,4 +4,5 @@
     <string name="refresh">Refresh</string>
     <string name="default_folder">Default folder</string>
     <string name="title_activity_settings">SettingsActivity</string>
+    <string name="delete">Delete</string>
 </resources>
