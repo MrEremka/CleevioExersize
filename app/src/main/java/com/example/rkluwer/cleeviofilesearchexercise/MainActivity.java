@@ -3,11 +3,13 @@ package com.example.rkluwer.cleeviofilesearchexercise;
 import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -57,6 +59,10 @@ public class MainActivity extends AppCompatActivity {
             listView = findViewById(R.id.main_layout_list_view);
             loadInternalStorage();
         }
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        String path = prefs.getString(ConstantValues.PREF_KEY_SET_DEFAULT_FOLDER, null);
+        createLog("Saved path is: " + path);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -240,14 +246,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Setting the correct history when loading from asyncTask.
-    private void setCountAndHistory(int count, ArrayList<String> pathHistory){
+    public void setCountAndHistory(int count, ArrayList<String> pathHistory){
         this.count = count;
         this.pathHistory = pathHistory;
     }
 }
 
 class AsyncLoadStorage extends AsyncTask {
-    // TODO make asynkTask to work
+    // TODO make asyncTask to work
 
     @Override
     protected Object doInBackground(Object[] objects) {
