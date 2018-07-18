@@ -43,6 +43,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // Retrieving the values from before the user changed the layout.
+        if (savedInstanceState != null){
+            count = savedInstanceState.getInt(ConstantValues.COUNT);
+            pathHistory = savedInstanceState.getStringArrayList(ConstantValues.PATH_HISTORY);
+            loadInternalStorage();
+        }
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -222,4 +229,13 @@ public class MainActivity extends AppCompatActivity {
     private void createLog(String message){
         Log.d("MainActivity", message);
     }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putInt(ConstantValues.COUNT, count);
+        outState.putStringArrayList(ConstantValues.PATH_HISTORY, pathHistory);
+        super.onSaveInstanceState(outState);
+    }
 }
+
+
