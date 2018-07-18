@@ -5,6 +5,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
@@ -32,10 +33,6 @@ public class MainActivity extends AppCompatActivity {
     ListView listView;
     ArrayAdapter<String> arrayAdapter;
 
-    private String[] filePathStrings;
-    private File[] fileArray;
-    private File file;
-
     private int count = 0;
     private ArrayList<String> pathHistory;
 
@@ -43,10 +40,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Initial check on the permissions and clearing the path history.
+        if (isExternalStorageReadable()){
+            requestPermission();
+
+            clearPathHistory();
+        }
+
         // Retrieving the values from before the user changed the layout.
         if (savedInstanceState != null){
+            createLog("SavedInstanceState is not null");
             count = savedInstanceState.getInt(ConstantValues.COUNT);
             pathHistory = savedInstanceState.getStringArrayList(ConstantValues.PATH_HISTORY);
+
+            listView = findViewById(R.id.main_layout_list_view);
             loadInternalStorage();
         }
 
@@ -68,14 +76,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         listView = findViewById(R.id.main_layout_list_view);
-
-        // Initial check on the permissions and clearing the path history.
-        if (isExternalStorageReadable()){
-            Toast.makeText(this, "External storage readable", Toast.LENGTH_SHORT).show();
-            requestPermission();
-
-            clearPathHistory();
-        }
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -153,11 +153,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadInternalStorage() {
         try {
-            file = new File(pathHistory.get(count));
+            createLog("loadInternalStorage directory: " + pathHistory.get(count));
+            File file = new File(pathHistory.get(count));
             createLog("FilePathHistory: " + pathHistory.get(count));
-            fileArray = file.listFiles();
+            File[] fileArray = file.listFiles();
 
-            filePathStrings = new String[fileArray.length];
+            String[] filePathStrings = new String[fileArray.length];
             for (int i = 0; i < fileArray.length; i++) {
                 StringBuilder builder = new StringBuilder();
                 builder.append(fileArray[i].toString());
@@ -176,17 +177,17 @@ public class MainActivity extends AppCompatActivity {
     // This method returns the extension of a file in order to be able to determine what kind of
     // file it is.
     private String fileExt(String url) {
-        if (url.indexOf("?") > -1) {
+        if (url.contains("?")) {
             url = url.substring(0, url.indexOf("?"));
         }
         if (url.lastIndexOf(".") == -1) {
             return null;
         } else {
             String ext = url.substring(url.lastIndexOf(".") + 1);
-            if (ext.indexOf("%") > -1) {
+            if (ext.contains("%")) {
                 ext = ext.substring(0, ext.indexOf("%"));
             }
-            if (ext.indexOf("/") > -1) {
+            if (ext.contains("/")) {
                 ext = ext.substring(0, ext.indexOf("/"));
             }
             return ext.toLowerCase();
@@ -232,9 +233,30 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        createLog("OnSaveInstanceState called");
         outState.putInt(ConstantValues.COUNT, count);
         outState.putStringArrayList(ConstantValues.PATH_HISTORY, pathHistory);
         super.onSaveInstanceState(outState);
+    }
+
+    // Setting the correct history when loading from asyncTask.
+    private void setCountAndHistory(int count, ArrayList<String> pathHistory){
+        this.count = count;
+        this.pathHistory = pathHistory;
+    }
+}
+
+class AsyncLoadStorage extends AsyncTask {
+    // TODO make asynkTask to work
+
+    @Override
+    protected Object doInBackground(Object[] objects) {
+        return null;
+    }
+
+    @Override
+    protected void onPreExecute() {
+        super.onPreExecute();
     }
 }
 

@@ -5,5 +5,6 @@
         android:key="pref_set_default_folder"
         android:summary="Set your default folder here"
         android:title="@string/default_folder"
+        android:defaultValue="/sdcard"
         />
 </PreferenceScreen>
