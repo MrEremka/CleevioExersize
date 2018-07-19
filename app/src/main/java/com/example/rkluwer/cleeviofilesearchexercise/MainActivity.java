@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -25,7 +26,7 @@ import android.view.View;
 import android.webkit.MimeTypeMap;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.widget.GridView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -33,7 +34,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    private ListView listView;
+    private GridView gridView;
     private ArrayAdapter<String> arrayAdapter;
 
     private int count = 0;
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
             count = savedInstanceState.getInt(ConstantValues.COUNT);
             pathHistory = savedInstanceState.getStringArrayList(ConstantValues.PATH_HISTORY);
 
-            listView = findViewById(R.id.main_layout_list_view);
+            gridView = findViewById(R.id.main_activity_grid_view);
             loadInternalStorage();
         }
 
@@ -114,9 +115,9 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        listView = findViewById(R.id.main_layout_list_view);
+        gridView = findViewById(R.id.main_activity_grid_view);
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 currentDirectory = pathHistory.get(count) + "/" + (String) parent.getItemAtPosition(position);
@@ -158,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 currentFile = (String) parent.getItemAtPosition(position);
@@ -239,8 +240,8 @@ public class MainActivity extends AppCompatActivity {
 
     // Method to load the storage and put it in a list view / grid view.
     private void loadInternalStorage() {
-        listView.setAlpha(0f);
-        listView.animate().alpha(1f).setDuration(1000);
+        gridView.setAlpha(0f);
+        gridView.animate().alpha(1f).setDuration(1000);
 
         try {
             createLog("loadInternalStorage directory: " + pathHistory.get(count));
@@ -258,7 +259,14 @@ public class MainActivity extends AppCompatActivity {
             }
 
             arrayAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, filePathStrings);
-            listView.setAdapter(arrayAdapter);
+            gridView.setAdapter(arrayAdapter);
+
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
+                gridView.setNumColumns(1);
+            } else {
+                gridView.setNumColumns(3);
+            }
+
         } catch (NullPointerException e){
             createLog(e.getMessage());
         }
