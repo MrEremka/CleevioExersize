@@ -8,17 +8,21 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.GridView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class DirecotryFragment extends Fragment {
+public class DirectoryFragment extends Fragment {
+
+    private String[] filePathStrings;
 
     // Empty necessary constructor.
-    public DirecotryFragment(){}
+    public DirectoryFragment(){
+    }
 
     /*
-    private String[] filePathStrings;
     private ArrayList<String> pathHistory;
     private int count;
     */
@@ -31,14 +35,12 @@ public class DirecotryFragment extends Fragment {
         if (savedInstanceState != null){
             //TODO load savedInstanceState
         }
+        View rootView = inflater.inflate(R.layout.activity_main_grid_layout, container);
 
-        View rootView = inflater.inflate(R.layout.directory_fragment, container, false);
+        GridView gridView = rootView.findViewById(R.id.main_activity_grid_view);
 
-        if (currentPath != null){
-            TextView currentTv = rootView.findViewById(R.id.fragment_text_view);
-            String[] splitPath = currentPath.split("/");
-            currentTv.setText(splitPath[splitPath.length -1]);
-        }
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(getActivity(), android.R.layout.simple_list_item_1, filePathStrings);
+        gridView.setAdapter(arrayAdapter);
 
         return rootView;
     }
@@ -47,11 +49,12 @@ public class DirecotryFragment extends Fragment {
         this.currentPath = currentPath;
     }
 
-    /*
+
     public void setFilePathStrings (String[] filePathStrings){
         this.filePathStrings = filePathStrings;
     }
 
+    /*
     public void setPathHistory (ArrayList<String> pathHistory){
         this.pathHistory = pathHistory;
     }
