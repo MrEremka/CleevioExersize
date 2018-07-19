@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
@@ -32,7 +31,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AsyncResponse {
 
     private GridView gridView;
     private ArrayAdapter<String> arrayAdapter;
@@ -92,11 +91,17 @@ public class MainActivity extends AppCompatActivity {
 
             gridView = findViewById(R.id.main_activity_grid_view);
             loadInternalStorage();
-        }
+        } else {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+            GetPathAsync asyncTask = new GetPathAsync();
+            asyncTask.setPreferences(prefs);
+            asyncTask.response = this;
+            asyncTask.execute();
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        String path = prefs.getString(ConstantValues.PREF_KEY_SET_DEFAULT_FOLDER, null);
-        createLog("Saved path is: " + path);
+            if (count != 0){
+                loadInternalStorage();
+            }
+        }
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -347,27 +352,15 @@ public class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
     }
 
+
+
     // Setting the correct history when loading from asyncTask.
+    @Override
     public void setCountAndHistory(int count, ArrayList<String> pathHistory){
+        createLog("Received from asyncTask: " + count + " and: " + pathHistory.toString());
         this.count = count;
         this.pathHistory = pathHistory;
     }
-}
-
-class AsyncLoadStorage extends AsyncTask {
-    // TODO make asyncTask to work
-
-    @Override
-    protected void onPreExecute() {
-        super.onPreExecute();
-    }
-
-    @Override
-    protected Object doInBackground(Object[] objects) {
-        return null;
-    }
-
-
 }
 
 
