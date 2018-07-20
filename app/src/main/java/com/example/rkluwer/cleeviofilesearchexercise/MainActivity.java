@@ -98,9 +98,6 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
             asyncTask.response = this;
             asyncTask.execute();
 
-            if (count != 0){
-                loadInternalStorage();
-            }
         }
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -360,6 +357,10 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
         createLog("Received from asyncTask: " + count + " and: " + pathHistory.toString());
         this.count = count;
         this.pathHistory = pathHistory;
+
+        if (count != 0){
+            loadInternalStorage();
+        }
     }
 }
 
