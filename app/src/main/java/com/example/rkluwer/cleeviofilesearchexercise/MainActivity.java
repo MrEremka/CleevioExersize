@@ -260,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements AsyncResponse {
                 createLog("File directory is: " + filePathStrings[i]);
             }
 
-            arrayAdapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_list_item_1, filePathStrings);
+            arrayAdapter = new ArrayAdapter<>(MainActivity.this, R.layout.list_item_file, filePathStrings);
             gridView.setAdapter(arrayAdapter);
 
             if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
